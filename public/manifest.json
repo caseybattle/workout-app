@@ -1,0 +1,12 @@
+{
+  "name": "Margin",
+  "short_name": "Margin",
+  "description": "How much room do you have left today?",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f6f1e7",
+  "theme_color": "#f6f1e7",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}
