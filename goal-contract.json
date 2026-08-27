@@ -1,0 +1,76 @@
+{
+  "outcome": "The existing Vercel production workout app supports reliable Google sign-in, authenticated state storage, and a verified OpenAI-backed request without Auth.js configuration errors.",
+  "non_goals": [
+    "Redesigning the workout app UI",
+    "Changing the Google account allowlist",
+    "Migrating the Neon database or altering stored user data beyond a no-op verification"
+  ],
+  "constraints": [
+    "Preserve all secrets outside source control and command output",
+    "Make the smallest complete auth repair",
+    "Use the existing Vercel project and production alias",
+    "Stop after three failed fix hypotheses or if a required credential is unavailable"
+  ],
+  "success_checks": [
+    {
+      "id": "check-unit",
+      "type": "command",
+      "command_or_condition": "npm test",
+      "required": true
+    },
+    {
+      "id": "check-auth-regression",
+      "type": "command",
+      "command_or_condition": "npm run test:auth",
+      "required": true
+    },
+    {
+      "id": "check-build",
+      "type": "command",
+      "command_or_condition": "npm run build",
+      "required": true
+    },
+    {
+      "id": "check-production-login",
+      "type": "condition",
+      "command_or_condition": "A fresh in-app-browser Google sign-in returns to the production alias with an authenticated session and no Auth.js runtime error.",
+      "required": true
+    },
+    {
+      "id": "check-production-storage",
+      "type": "condition",
+      "command_or_condition": "The authenticated production /api/state endpoint returns a successful JSON response backed by Neon.",
+      "required": true
+    },
+    {
+      "id": "check-production-ai",
+      "type": "condition",
+      "command_or_condition": "One bounded authenticated production /api/ai estimate request returns model output without exposing the API key.",
+      "required": true
+    },
+    {
+      "id": "check-production-logs",
+      "type": "condition",
+      "command_or_condition": "Vercel reports the deployment READY and no new auth, storage, or AI runtime error clusters after verification.",
+      "required": true
+    }
+  ],
+  "stop_conditions": [
+    "All required success checks have fresh evidence",
+    "The same blocking credential or platform condition prevents progress three times",
+    "Three distinct repair hypotheses fail and the authentication architecture requires user review"
+  ],
+  "required_evidence": [
+    "Fresh unit, auth regression, and production build output",
+    "Vercel deployment ID and READY state",
+    "In-app-browser authenticated session, state API, and AI API observations",
+    "Post-verification Vercel runtime error report"
+  ],
+  "approval_boundaries": [
+    "Do not reveal or commit credentials",
+    "Do not change Google Cloud OAuth credentials or authorized redirect URIs without a required user-only confirmation",
+    "Do not delete or overwrite existing workout data",
+    "Deploy only to the existing workout-app Vercel project"
+  ],
+  "expires_at": null
+}

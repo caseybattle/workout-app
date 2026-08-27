@@ -12,8 +12,8 @@ instead of guessing at a number forever.
 
 ## Stack
 
-- Next.js 15 (App Router), React 19, plain JavaScript
-- Auth.js v5 (NextAuth), Google provider, JWT sessions
+- Next.js 16 (App Router), React 19, plain JavaScript
+- NextAuth.js v4, Google provider, JWT sessions
 - Neon Postgres (`@neondatabase/serverless`) for per-user storage
 - OpenAI, server-side only, for optional food estimation/lookup/coaching
 
@@ -24,7 +24,9 @@ See `.env.example`. In short:
 - `OPENAI_API_KEY` — powers `/api/ai` (estimate / lookup / coach)
 - `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET` — Google OAuth client
 - `AUTH_SECRET` — random string, signs session tokens
-- `ALLOWED_EMAILS` — comma-separated allowlist; empty allows any Google account
+- `NEXTAUTH_URL` — canonical production URL used for OAuth callbacks
+- `AUTH_RESTRICTED` — set to `true` to enforce the Google email allowlist
+- `ALLOWED_EMAILS` — comma-separated allowlist used only in restricted mode
 - `DATABASE_URL` — Neon connection string
 - `USDA_API_KEY` — optional, food search falls back to a shared demo key
 - `AI_DAILY_LIMIT` — optional, defaults to 40 calls/user/day
@@ -57,7 +59,7 @@ The browser never sends a raw prompt — it sends a task name (`estimate`,
 `lookup`, `coach`) plus a few short fields, and the server assembles the
 actual prompt. On top of that:
 
-- Sign-in required on every call, restricted to `ALLOWED_EMAILS`.
+- Sign-in required on every call. Set `AUTH_RESTRICTED=true` to restrict access to `ALLOWED_EMAILS`.
 - Per-user daily cap, `AI_DAILY_LIMIT`, default 40 calls.
 - Every input field length-capped before it reaches the model.
 - `max_completion_tokens` capped per task.
