@@ -1,8 +1,8 @@
 import "./globals.css";
 
 export const metadata = {
-  title: "Margin",
-  description: "How much room do you have left today?",
+  title: "Adaptive Training",
+  description: "A training plan that learns from your workouts, fuel, and progress.",
   manifest: "/manifest.json",
 };
 
@@ -11,7 +11,7 @@ export const viewport = {
   initialScale: 1,
   maximumScale: 1,
   viewportFit: "cover",
-  themeColor: "#f6f1e7",
+  themeColor: "#0B0E0D",
 };
 
 export default function RootLayout({ children }) {
