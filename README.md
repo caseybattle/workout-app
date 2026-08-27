@@ -6,6 +6,10 @@ A small calorie/macro ledger for a private group. Sign in with Google, log
 what you eat, log your weight, and let it calibrate your target over time
 instead of guessing at a number forever.
 
+## Production
+
+- App: `https://workout-app-rho-dusky.vercel.app`
+
 ## Stack
 
 - Next.js 15 (App Router), React 19, plain JavaScript
