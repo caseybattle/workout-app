@@ -1,12 +1,12 @@
 {
-  "name": "ledger",
+  "name": "adaptive-training",
   "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "npm test && next build",
     "start": "next start",
-    "test": "node lib/nutrition.test.mjs"
+    "test": "node lib/nutrition.test.mjs && node lib/training.test.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^0.10.4",
