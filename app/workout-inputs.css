@@ -1,0 +1,40 @@
+.numeric-value {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 3px;
+  justify-items: center;
+}
+
+.numeric-value input {
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text);
+  text-align: center;
+  font-size: 28px;
+  line-height: 1;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  appearance: textfield;
+}
+
+.numeric-value input::-webkit-inner-spin-button,
+.numeric-value input::-webkit-outer-spin-button {
+  margin: 0;
+  appearance: none;
+}
+
+.numeric-value small {
+  color: var(--muted);
+  font-size: 12px;
+  justify-self: start;
+}
+
+.reps-value {
+  display: block;
+}
