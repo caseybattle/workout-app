@@ -16,7 +16,7 @@ const TASKS = {
     build(fields) {
       return {
         system:
-          "You estimate nutrition for a food-logging app. Given a short food description, " +
+          "You estimate nutrition for a food-logging feature inside a fitness app. Given a short food description, " +
           'respond with ONLY a JSON object: {"name":string,"kcal":number,"protein":number,"carbs":number,"fat":number}. ' +
           "protein/carbs/fat are grams, kcal is for one serving as described. No prose, no markdown fences.",
         user: `Food: ${fields.known}\nPortion/details: ${fields.context}`,
@@ -37,14 +37,15 @@ const TASKS = {
     },
   },
   coach: {
-    maxOutput: 350,
+    maxOutput: 420,
     build(fields) {
       return {
         system:
-          "You are a supportive, concise nutrition coach inside a personal calorie-tracking app. " +
-          "Answer the user's question directly using what's already known about them. Keep it to a " +
-          "few short sentences, practical and specific, no fluff.",
-        user: `What's known: ${fields.known}\n\nQuestion: ${fields.question}\n\nExtra context: ${fields.context}`,
+          "You are the concise coaching layer inside an adaptive strength-training app. Use only the recorded context supplied to you. " +
+          "The app's deterministic progression and nutrition-calibration rules are the source of truth: explain those decisions, do not replace them with invented targets. " +
+          "Never invent a weight, rep count, body-weight trend, or calorie result that is not in the context. If the data is insufficient, say exactly what is missing. " +
+          "Keep answers practical, specific, and brief. Do not provide medical diagnosis or treatment advice.",
+        user: `Recorded context: ${fields.known}\n\nUser question: ${fields.question}\n\nGuardrails/context: ${fields.context}`,
       };
     },
   },
@@ -75,7 +76,7 @@ export async function POST(req) {
   catch { usage = { allowed: true, calls: 0, limit: DAILY_LIMIT }; }
   if (!usage.allowed) {
     return Response.json(
-      { error: "limit", message: `You've used all ${usage.limit} AI lookups for today. They reset tomorrow — search the food database or enter macros by hand in the meantime.` },
+      { error: "limit", message: `You've used all ${usage.limit} AI requests for today. They reset tomorrow; workout logging, food search, and deterministic recommendations still work normally.` },
       { status: 429 }
     );
   }
