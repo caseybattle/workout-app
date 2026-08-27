@@ -4,18 +4,33 @@ import { useCallback, useEffect, useState } from "react";
 import { signOut } from "next-auth/react";
 import { loadLocal, saveLocal, fetchRemoteState, pushRemoteState, resolveConflict, stamp } from "@/lib/client";
 import { today } from "@/lib/nutrition";
+import { normalizeTrainingState } from "@/lib/program";
 import Onboarding from "./Onboarding";
-import Today from "./Today";
-import Trends from "./Trends";
 import AddSheet from "./AddSheet";
+import AppNav from "./AppNav";
+import TodayDashboard from "./TodayDashboard";
+import Train from "./Train";
+import ActiveWorkout from "./ActiveWorkout";
+import Food from "./Food";
+import Progress from "./Progress";
+import Coach from "./Coach";
 
-const emptyState = () => stamp({ profile: null, logs: {}, weights: [] });
+const emptyState = () => normalizeTrainingState(stamp({ profile: null, logs: {}, weights: [] }));
+
+const TAB_LABELS = {
+  today: "Today",
+  train: "Train",
+  food: "Food",
+  progress: "Progress",
+  coach: "Coach",
+};
 
 export default function LedgerApp({ user }) {
   const [state, setState] = useState(null);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState("today");
   const [adding, setAdding] = useState(false);
+  const [activeWorkoutDay, setActiveWorkoutDay] = useState(null);
   const [saveNote, setSaveNote] = useState("");
 
   useEffect(() => {
@@ -23,33 +38,38 @@ export default function LedgerApp({ user }) {
     (async () => {
       const local = loadLocal();
       let remote = null;
-      try { remote = await fetchRemoteState(); } catch { /* offline, or storage not configured yet */ }
+      try { remote = await fetchRemoteState(); } catch { /* local-first fallback */ }
       const resolved = resolveConflict(local, remote) || emptyState();
-      if (!cancelled) { setState(resolved); setLoading(false); }
+      const normalized = normalizeTrainingState(resolved);
+      if (!cancelled) {
+        setState(normalized);
+        saveLocal(normalized);
+        setLoading(false);
+      }
     })();
     return () => { cancelled = true; };
   }, []);
 
   const persist = useCallback((next) => {
-    const stamped = stamp(next);
+    const stamped = stamp(normalizeTrainingState(next));
     setState(stamped);
     saveLocal(stamped);
     setSaveNote("");
-    pushRemoteState(stamped).catch(() => setSaveNote("Saved on this device — couldn't reach the server."));
+    pushRemoteState(stamped).catch(() => setSaveNote("Saved on this device. Server sync will retry the next time data changes."));
   }, []);
 
   if (loading || !state) {
     return (
-      <div className="shell">
-        <div className="busy"><span className="spin" />Opening your ledger</div>
+      <div className="shell loading-shell">
+        <div className="busy"><span className="spin" />Opening your plan</div>
       </div>
     );
   }
 
   if (!state.profile) {
     return (
-      <div className="shell">
-        <div className="appbar"><h1>Margin</h1></div>
+      <div className="shell onboarding-shell">
+        <div className="product-mark">ADAPTIVE TRAINING</div>
         <Onboarding onDone={(profile) => persist({ ...state, profile })} />
       </div>
     );
@@ -65,12 +85,12 @@ export default function LedgerApp({ user }) {
   }
 
   function removeEntry(id) {
-    const logs = { ...state.logs, [day]: (state.logs[day] || []).filter((e) => e.id !== id) };
+    const logs = { ...state.logs, [day]: (state.logs[day] || []).filter((entry) => entry.id !== id) };
     persist({ ...state, logs });
   }
 
-  function addWeight(w) {
-    const weights = [...state.weights.filter((x) => x.date !== w.date), w];
+  function addWeight(weight) {
+    const weights = [...state.weights.filter((entry) => entry.date !== weight.date), weight];
     persist({ ...state, weights });
   }
 
@@ -78,35 +98,59 @@ export default function LedgerApp({ user }) {
     persist({ ...state, profile });
   }
 
+  function completeWorkout(session) {
+    persist({ ...state, workoutSessions: [...state.workoutSessions, session] });
+    setActiveWorkoutDay(null);
+    setTab("today");
+  }
+
+  if (activeWorkoutDay) {
+    return (
+      <ActiveWorkout
+        key={activeWorkoutDay.id}
+        workoutDay={activeWorkoutDay}
+        workoutSessions={state.workoutSessions}
+        onComplete={completeWorkout}
+        onCancel={() => setActiveWorkoutDay(null)}
+      />
+    );
+  }
+
   return (
-    <div className="shell">
-      <div className="appbar">
-        <h1>Margin</h1>
+    <div className="shell app-shell">
+      <header className="appbar new-appbar">
+        <div>
+          <div className="product-mark">YOUR TRAINING</div>
+          <h1>{TAB_LABELS[tab]}</h1>
+        </div>
         {user?.email ? (
-          <span className="who">
-            {user.email}{" "}
-            <button className="btn ghost small" onClick={() => signOut({ callbackUrl: "/" })}>Sign out</button>
-          </span>
+          <button className="profile-button" onClick={() => signOut({ callbackUrl: "/" })} title={`${user.email} · Sign out`}>
+            {(user.email[0] || "U").toUpperCase()}
+          </button>
         ) : (
-          <span className="who">local device</span>
+          <span className="local-badge">Local</span>
         )}
-      </div>
+      </header>
 
-      <div className="tabs">
-        <button className={tab === "today" ? "active" : ""} onClick={() => setTab("today")}>Today</button>
-        <button className={tab === "trends" ? "active" : ""} onClick={() => setTab("trends")}>Trends</button>
-      </div>
+      {saveNote && <p className="sync-note">{saveNote}</p>}
 
-      {saveNote && <p className="hint-text" style={{ marginBottom: 12 }}>{saveNote}</p>}
+      <main className="screen-content">
+        {tab === "today" && (
+          <TodayDashboard
+            state={state}
+            entries={todayEntries}
+            onStartWorkout={setActiveWorkoutDay}
+            onAddFood={() => setAdding(true)}
+            onOpenProgress={() => setTab("progress")}
+          />
+        )}
+        {tab === "train" && <Train state={state} onStartWorkout={setActiveWorkoutDay} />}
+        {tab === "food" && <Food profile={state.profile} entries={todayEntries} onAdd={() => setAdding(true)} onRemove={removeEntry} />}
+        {tab === "progress" && <Progress state={state} onLogWeight={addWeight} onUpdateProfile={updateProfile} />}
+        {tab === "coach" && <Coach state={state} />}
+      </main>
 
-      {tab === "today" && (
-        <Today profile={state.profile} entries={todayEntries} onAdd={() => setAdding(true)} onRemove={removeEntry} />
-      )}
-
-      {tab === "trends" && (
-        <Trends state={state} onLogWeight={addWeight} onUpdateProfile={updateProfile} />
-      )}
-
+      <AppNav tab={tab} onChange={setTab} />
       {adding && <AddSheet onClose={() => setAdding(false)} onAdd={addEntry} />}
     </div>
   );
