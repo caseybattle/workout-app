@@ -1,4 +1,5 @@
 import "./globals.css";
+import "./workout-inputs.css";
 
 export const metadata = {
   title: "Adaptive Training",
