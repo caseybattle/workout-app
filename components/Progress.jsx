@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { calibrate, rollingWeights, today } from "@/lib/nutrition";
+import { calibrate, rollingWeights, targetKcal, today } from "@/lib/nutrition";
 import { weeklyReview } from "@/lib/insights";
 import { workoutSummary } from "@/lib/training";
 
@@ -11,6 +11,10 @@ export default function Progress({ state, onLogWeight, onUpdateProfile }) {
   const review = weeklyReview(state);
   const rolled = rollingWeights(state.weights || []);
   const latest = rolled.at(-1);
+  const currentDailyTarget = targetKcal(state.profile);
+  const suggestedDailyTarget = calibration?.ok
+    ? targetKcal({ ...state.profile, multiplier: calibration.suggested })
+    : null;
   const recentSession = [...state.workoutSessions]
     .filter((session) => session.completedAt)
     .sort((a, b) => String(b.completedAt).localeCompare(String(a.completedAt)))[0];
@@ -85,9 +89,11 @@ export default function Progress({ state, onLogWeight, onUpdateProfile }) {
         {calibration && !calibration.ok && <p className="notice">{calibration.reason}</p>}
         {calibration?.ok && (
           <div className="calibration-callout">
-            <strong>{calibration.suggested} calories per {state.profile.unit}</strong>
-            <p>Current setting: {calibration.current}. Based on {calibration.loggedDays} logged days across {calibration.span} days.</p>
-            <button className="btn primary compact" onClick={applyCalibration}>Apply adjustment</button>
+            <strong>Suggested daily target: {suggestedDailyTarget.toLocaleString()} kcal</strong>
+            <p>
+              Current target: {currentDailyTarget.toLocaleString()} kcal. Based on {calibration.loggedDays} logged days across {calibration.span} days of weight and intake data.
+            </p>
+            <button className="btn primary compact" onClick={applyCalibration}>Use {suggestedDailyTarget.toLocaleString()} kcal</button>
           </div>
         )}
       </section>
