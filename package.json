@@ -7,7 +7,7 @@
     "dev": "next dev",
     "build": "npm test && next build",
     "start": "next start",
-    "test": "node lib/nutrition.test.mjs && node lib/training.test.mjs && node lib/program.test.mjs"
+    "test": "node lib/nutrition.test.mjs && node lib/training.test.mjs && node lib/program.test.mjs && node lib/insights.test.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^0.10.4",
