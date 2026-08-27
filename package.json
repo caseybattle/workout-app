@@ -2,11 +2,12 @@
   "name": "adaptive-training",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "npm test && next build",
     "start": "next start",
-    "test": "node lib/nutrition.test.mjs && node lib/training.test.mjs"
+    "test": "node lib/nutrition.test.mjs && node lib/training.test.mjs && node lib/program.test.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^0.10.4",
