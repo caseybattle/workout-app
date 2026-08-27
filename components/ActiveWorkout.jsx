@@ -36,6 +36,15 @@ export default function ActiveWorkout({ workoutDay, workoutSessions, onComplete,
     patchSet({ [field]: Math.max(0, Number(set[field] || 0) + delta) });
   }
 
+  function setNumericValue(field, value) {
+    if (value === "") {
+      patchSet({ [field]: 0 });
+      return;
+    }
+    const numeric = Number(value);
+    if (Number.isFinite(numeric)) patchSet({ [field]: Math.max(0, numeric) });
+  }
+
   function completeSet() {
     const marked = updateWorkoutSet(draft, exerciseIndex, setIndex, { completedAt: new Date().toISOString() });
     setDraft(marked);
@@ -116,7 +125,18 @@ export default function ActiveWorkout({ workoutDay, workoutSessions, onComplete,
             <span>WEIGHT</span>
             <div className="stepper">
               <button onClick={() => changeNumber("load", -5)} aria-label="Decrease weight by 5">−</button>
-              <strong>{Math.round(set.load)}<small> lb</small></strong>
+              <label className="numeric-value">
+                <input
+                  type="number"
+                  min="0"
+                  step="2.5"
+                  inputMode="decimal"
+                  value={set.load}
+                  onChange={(event) => setNumericValue("load", event.target.value)}
+                  aria-label="Working weight"
+                />
+                <small>lb</small>
+              </label>
               <button onClick={() => changeNumber("load", 5)} aria-label="Increase weight by 5">+</button>
             </div>
           </div>
@@ -125,7 +145,17 @@ export default function ActiveWorkout({ workoutDay, workoutSessions, onComplete,
             <span>REPS</span>
             <div className="stepper">
               <button onClick={() => changeNumber("reps", -1)} aria-label="Decrease reps">−</button>
-              <strong>{Math.round(set.reps)}</strong>
+              <label className="numeric-value reps-value">
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  inputMode="numeric"
+                  value={set.reps}
+                  onChange={(event) => setNumericValue("reps", event.target.value)}
+                  aria-label="Completed reps"
+                />
+              </label>
               <button onClick={() => changeNumber("reps", 1)} aria-label="Increase reps">+</button>
             </div>
           </div>
