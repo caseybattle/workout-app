@@ -641,6 +641,12 @@ button:not(:disabled):active { transform: translateY(1px); }
   .bottom-nav button svg { width: 19px; height: 19px; }
   .today-layout { gap: 12px; }
   .prescription-panel { padding: 20px; }
+  .prescription-panel { display: flex; flex-direction: column; }
+  .prescription-topline { order: 0; }
+  .prescription-heading { order: 1; }
+  .hero-action { order: 2; margin-top: 0; margin-bottom: 20px; }
+  .prescription-exercises { order: 3; }
+  .inline-prescription { order: 4; }
   .prescription-heading { grid-template-columns: 36px 1fr; gap: 8px; padding: 24px 0 20px; }
   .prescription-heading h3 { font-size: 39px; }
   .prescription-topline .data-copy { font-size: 9px; }
