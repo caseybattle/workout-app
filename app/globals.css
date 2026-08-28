@@ -404,7 +404,8 @@ button:not(:disabled):active { transform: translateY(1px); }
 .eyebrow { color: var(--muted); font: 600 10px/1.2 var(--font-data), monospace; letter-spacing: .13em; }
 .section-head h2, .today-intro h2 { font-size: clamp(35px, 5vw, 56px); line-height: .95; letter-spacing: -.06em; font-weight: 600; margin: 10px 0 12px; }
 .section-head p, .today-intro p { color: var(--muted); max-width: 590px; line-height: 1.6; font-size: 14px; }
-.editorial-head { align-items: end; padding: 8px 0 6px; }
+.editorial-head { display: flex; justify-content: space-between; align-items: end; gap: 24px; padding: 8px 0 6px; }
+.editorial-head > :first-child { min-width: 0; }
 
 .bottom-nav {
   left: 50%; right: auto; bottom: max(18px, env(safe-area-inset-bottom)); transform: translateX(-50%);
@@ -457,7 +458,7 @@ button:not(:disabled):active { transform: translateY(1px); }
 .progress-rail em { margin-top: auto; color: var(--accent); font-size: 11px; font-style: normal; font-weight: 700; display: flex; justify-content: space-between; }
 
 /* Program */
-.program-count { font-size: 34px; color: var(--accent); text-align: right; line-height: 1; }
+.program-count { display: grid; justify-items: end; flex: 0 0 auto; width: auto; font-size: 34px; color: var(--accent); text-align: right; line-height: 1; }
 .program-count small { display: block; color: var(--muted); font: 500 9px/1.4 var(--font-data), monospace; margin-top: 6px; text-transform: uppercase; letter-spacing: .08em; }
 .resume-strip { border: 1px solid rgba(200,255,77,.25); background: rgba(200,255,77,.045); border-radius: 14px; padding: 16px 18px; display: flex; justify-content: space-between; align-items: center; gap: 20px; }
 .resume-strip div { display: grid; gap: 3px; }
@@ -632,7 +633,7 @@ button:not(:disabled):active { transform: translateY(1px); }
   .new-appbar h1 { font-size: 28px; }
   .product-mark small { display: none; }
   .section-head h2, .today-intro h2 { font-size: 39px; }
-  .editorial-head { align-items: flex-start; gap: 18px; }
+  .editorial-head { flex-direction: column; align-items: flex-start; gap: 18px; }
   .program-count { display: none; }
   .bottom-nav { width: calc(100% - 20px); bottom: max(8px, env(safe-area-inset-bottom)); border-radius: 16px; }
   .bottom-nav button { min-height: 56px; padding: 5px 2px; }
