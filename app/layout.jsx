@@ -10,6 +10,10 @@ export const metadata = {
   title: "Margin | Adaptive Training",
   description: "A training plan that learns from your workouts, fuel, and progress.",
   manifest: "/manifest.json",
+  icons: {
+    icon: "/icon.svg",
+    apple: "/icon.svg",
+  },
 };
 
 export const viewport = {
