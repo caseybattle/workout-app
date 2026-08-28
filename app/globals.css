@@ -678,8 +678,10 @@ button:not(:disabled):active { transform: translateY(1px); }
   .coach-status { display: none; }
   .coach-context { grid-template-columns: 1fr; }
   .coach-context dl { grid-template-columns: repeat(2,1fr); }
-  .coach-thread { grid-template-rows: minmax(240px, auto) auto auto; padding: 9px; }
+  .coach-thread { order: 0; grid-template-rows: minmax(180px, auto) auto auto; padding: 9px; }
+  .coach-context { order: 1; }
   .thread-window { padding: 14px; }
+  .coach-welcome { margin: 24px auto; }
   .message { max-width: 94%; }
   .coach-composer { grid-template-columns: 1fr; }
   .coach-composer .btn { width: 100%; }
