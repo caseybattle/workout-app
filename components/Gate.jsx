@@ -9,7 +9,7 @@ export default function Gate() {
   return (
     <div className="shell gate">
       <div className="gate-card new-gate-card">
-        <div className="product-mark">ADAPTIVE TRAINING</div>
+        <div className="product-mark">MARGIN</div>
         <h1>Your plan should learn from your results.</h1>
         <p>Train, track enough fuel and body-weight data, and use what actually happens to improve what you do next.</p>
 

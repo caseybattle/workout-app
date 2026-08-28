@@ -1,11 +1,11 @@
 {
-  "name": "Adaptive Training",
-  "short_name": "Training",
+  "name": "Margin Adaptive Training",
+  "short_name": "Margin",
   "description": "A training plan that learns from your workouts, fuel, and progress.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0B0E0D",
-  "theme_color": "#0B0E0D",
+  "background_color": "#0A0D0B",
+  "theme_color": "#0A0D0B",
   "icons": [
     { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml" }
   ]

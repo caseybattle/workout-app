@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "npm test && npm run test:auth && next build",
+    "design:lint": "npx --yes @google/design.md lint DESIGN.md",
     "start": "next start",
     "test": "node lib/nutrition.test.mjs && node lib/training.test.mjs && node lib/program.test.mjs && node lib/insights.test.mjs && node lib/auth-policy.test.mjs",
     "test:auth": "node lib/auth.test.mjs",

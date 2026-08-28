@@ -69,7 +69,7 @@ export default function LedgerApp({ user }) {
   if (!state.profile) {
     return (
       <div className="shell onboarding-shell">
-        <div className="product-mark">ADAPTIVE TRAINING</div>
+        <div className="product-mark">MARGIN</div>
         <Onboarding onDone={(profile) => persist({ ...state, profile })} />
       </div>
     );
@@ -152,7 +152,7 @@ export default function LedgerApp({ user }) {
     <div className="shell app-shell">
       <header className="appbar new-appbar">
         <div>
-          <div className="product-mark">YOUR TRAINING</div>
+          <div className="product-mark"><span>MARGIN</span><small>ADAPTIVE TRAINING</small></div>
           <h1>{TAB_LABELS[tab]}</h1>
         </div>
         {user?.email ? (
