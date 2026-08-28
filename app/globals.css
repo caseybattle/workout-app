@@ -584,8 +584,8 @@ button:not(:disabled):active { transform: translateY(1px); }
 .active-head h1 { font-family: var(--font-display), sans-serif; font-size: clamp(20px,4vw,30px); letter-spacing: -.04em; }
 .workout-progress { color: var(--accent); font-size: 11px; }
 .rest-panel { margin: 18px auto 0; max-width: calc(100% - 36px); border-color: rgba(255,180,94,.35); background: linear-gradient(120deg, rgba(255,180,94,.1), rgba(255,180,94,.025)); border-radius: 16px; padding: 18px 22px; }
-.rest-panel span { color: var(--warning); }
-.rest-panel strong { color: var(--warning); font-size: 38px; letter-spacing: -.05em; }
+.active-workout .rest-panel > div:first-child span { color: var(--warning); }
+.active-workout .rest-panel > div:first-child strong { color: var(--warning); font-size: 38px; letter-spacing: -.05em; }
 .active-body { max-width: 780px; margin: 0 auto; padding-top: 30px; }
 .exercise-position { color: var(--accent); font-family: var(--font-data), monospace; }
 .active-body h2 { font-family: var(--font-display), sans-serif; font-size: clamp(35px,7vw,58px); line-height: .92; letter-spacing: -.06em; }
