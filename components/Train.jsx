@@ -2,7 +2,7 @@
 
 import { workoutSummary } from "@/lib/training";
 
-export default function Train({ state, onStartWorkout }) {
+export default function Train({ state, onStartWorkout, onResumeWorkout }) {
   const recent = [...state.workoutSessions]
     .filter((session) => session.completedAt)
     .sort((a, b) => String(b.completedAt).localeCompare(String(a.completedAt)))
@@ -18,15 +18,32 @@ export default function Train({ state, onStartWorkout }) {
         </div>
       </header>
 
+      {state.activeWorkout && (
+        <section className="insight-card active-workout-callout">
+          <div className="eyebrow">WORKOUT IN PROGRESS</div>
+          <strong>{state.activeWorkout.draft.workoutName}</strong>
+          <p>Your completed sets are saved. Resume when you are ready.</p>
+          <button className="btn primary compact" onClick={onResumeWorkout}>Resume Workout</button>
+        </section>
+      )}
+
       <section className="workout-list">
-        {state.program.workoutDays.map((day) => (
+        {state.program.workoutDays.map((day) => {
+          const isActive = state.activeWorkout?.workoutDayId === day.id;
+          return (
           <article className="workout-card" key={day.id}>
             <div className="workout-card-head">
               <div>
                 <strong>{day.name}</strong>
                 <small>{day.exercises.length} exercises</small>
               </div>
-              <button className="btn compact primary" onClick={() => onStartWorkout(day)}>Start</button>
+              <button
+                className="btn compact primary"
+                disabled={Boolean(state.activeWorkout)}
+                onClick={() => onStartWorkout(day)}
+              >
+                {isActive ? "In progress" : "Start"}
+              </button>
             </div>
             <div className="exercise-preview">
               {day.exercises.slice(0, 4).map((exercise) => (
@@ -35,7 +52,8 @@ export default function Train({ state, onStartWorkout }) {
               {day.exercises.length > 4 && <span>+{day.exercises.length - 4} more</span>}
             </div>
           </article>
-        ))}
+          );
+        })}
       </section>
 
       <section className="card-flat">

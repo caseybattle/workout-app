@@ -1,35 +1,61 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { completeWorkoutDraft, createWorkoutDraft, updateWorkoutSet } from "@/lib/training";
+import {
+  activeRestSeconds,
+  completeActiveWorkoutSet,
+  completeWorkoutDraft,
+  createActiveWorkoutState,
+  pauseActiveWorkoutRest,
+  resumeActiveWorkoutRest,
+  skipActiveWorkoutRest,
+  updateWorkoutSet,
+} from "@/lib/training";
 
-export default function ActiveWorkout({ workoutDay, workoutSessions, onComplete, onCancel }) {
-  const initialDraft = useMemo(
-    () => createWorkoutDraft(workoutDay, workoutSessions, new Date().toISOString()),
-    [workoutDay, workoutSessions]
+export default function ActiveWorkout({
+  workoutDay,
+  workoutSessions,
+  initialWorkout,
+  onUpdate,
+  onComplete,
+  onSaveAndExit,
+  onDiscard,
+}) {
+  const initialState = useMemo(
+    () => initialWorkout || createActiveWorkoutState(workoutDay, workoutSessions, new Date().toISOString()),
+    [initialWorkout, workoutDay, workoutSessions],
   );
-  const [draft, setDraft] = useState(initialDraft);
-  const [exerciseIndex, setExerciseIndex] = useState(0);
-  const [setIndex, setSetIndex] = useState(0);
-  const [rest, setRest] = useState(0);
+  const [active, setActive] = useState(initialState);
+  const [clock, setClock] = useState(() => new Date().toISOString());
+  const [confirmDiscard, setConfirmDiscard] = useState(false);
 
-  useEffect(() => {
-    if (rest <= 0) return undefined;
-    const timer = setInterval(() => setRest((seconds) => Math.max(0, seconds - 1)), 1000);
-    return () => clearInterval(timer);
-  }, [rest]);
-
+  const draft = active.draft;
+  const exerciseIndex = active.exerciseIndex;
+  const setIndex = active.setIndex;
   const exercise = draft.exercises[exerciseIndex];
   const set = exercise?.sets?.[setIndex];
+  const rest = activeRestSeconds(active, clock);
+  const restPaused = Number(active.restPausedSeconds) > 0;
   const totalSets = draft.exercises.reduce((sum, item) => sum + item.sets.length, 0);
   const completedSets = draft.exercises.reduce(
     (sum, item) => sum + item.sets.filter((workingSet) => workingSet.completedAt).length,
-    0
+    0,
   );
   const allComplete = completedSets === totalSets;
 
+  useEffect(() => {
+    if (!active.restEndsAt) return undefined;
+    const timer = setInterval(() => setClock(new Date().toISOString()), 1000);
+    return () => clearInterval(timer);
+  }, [active.restEndsAt]);
+
+  function commit(next) {
+    setActive(next);
+    onUpdate(next);
+  }
+
   function patchSet(patch) {
-    setDraft((current) => updateWorkoutSet(current, exerciseIndex, setIndex, patch));
+    commit({ ...active, draft: updateWorkoutSet(draft, exerciseIndex, setIndex, patch) });
   }
 
   function changeNumber(field, delta) {
@@ -45,24 +71,13 @@ export default function ActiveWorkout({ workoutDay, workoutSessions, onComplete,
     if (Number.isFinite(numeric)) patchSet({ [field]: Math.max(0, numeric) });
   }
 
+  function selectSet(index) {
+    commit({ ...active, setIndex: index, restEndsAt: null, restPausedSeconds: 0 });
+  }
+
   function completeSet() {
-    const marked = updateWorkoutSet(draft, exerciseIndex, setIndex, { completedAt: new Date().toISOString() });
-    setDraft(marked);
-
-    const isLastSet = setIndex === exercise.sets.length - 1;
-    const isLastExercise = exerciseIndex === draft.exercises.length - 1;
-
-    if (!isLastSet) {
-      setSetIndex(setIndex + 1);
-      setRest(90);
-      return;
-    }
-
-    if (!isLastExercise) {
-      setExerciseIndex(exerciseIndex + 1);
-      setSetIndex(0);
-      setRest(90);
-    }
+    commit(completeActiveWorkoutSet(active, new Date().toISOString(), 90));
+    setClock(new Date().toISOString());
   }
 
   function finishWorkout() {
@@ -71,11 +86,12 @@ export default function ActiveWorkout({ workoutDay, workoutSessions, onComplete,
 
   const minutes = Math.floor(rest / 60);
   const seconds = String(rest % 60).padStart(2, "0");
+  const nextLabel = `Set ${setIndex + 1}`;
 
   return (
     <div className="active-workout">
       <header className="active-head">
-        <button className="text-button" onClick={onCancel}>Exit</button>
+        <button className="text-button" onClick={() => onSaveAndExit(active)}>Save & Exit</button>
         <div>
           <span>{workoutDay.name}</span>
           <strong>{completedSets}/{totalSets} sets</strong>
@@ -86,11 +102,22 @@ export default function ActiveWorkout({ workoutDay, workoutSessions, onComplete,
       <div className="workout-progress"><span style={{ width: `${totalSets ? (completedSets / totalSets) * 100 : 0}%` }} /></div>
 
       {rest > 0 && (
-        <button className="rest-bar" onClick={() => setRest(0)}>
-          <span>Rest</span>
-          <strong>{minutes}:{seconds}</strong>
-          <small>tap to skip</small>
-        </button>
+        <section className="rest-panel" aria-label="Rest timer">
+          <div>
+            <span>{restPaused ? "Rest paused" : `Rest before ${nextLabel}`}</span>
+            <strong>{minutes}:{seconds}</strong>
+          </div>
+          <div className="rest-actions">
+            <button className="btn small secondary" onClick={() => commit(restPaused
+              ? resumeActiveWorkoutRest(active, new Date().toISOString())
+              : pauseActiveWorkoutRest(active, new Date().toISOString()))}>
+              {restPaused ? "Resume timer" : "Pause timer"}
+            </button>
+            <button className="btn small primary" onClick={() => commit(skipActiveWorkoutRest(active))}>
+              Start {nextLabel}
+            </button>
+          </div>
+        </section>
       )}
 
       <main className="active-body">
@@ -101,19 +128,25 @@ export default function ActiveWorkout({ workoutDay, workoutSessions, onComplete,
         </p>
 
         <section className="recommendation-box">
-          <span>TODAY'S TARGET</span>
+          <span>TODAY&apos;S TARGET</span>
           <strong>
             {exercise.recommendation.nextLoad == null ? "Choose your working weight" : `${exercise.recommendation.nextLoad} lb`}
           </strong>
           <p>{exercise.recommendation.reason}</p>
         </section>
 
+        <div className="active-set-label">
+          <strong>{nextLabel} of {exercise.sets.length}</strong>
+          <span>{set.completedAt ? "Complete" : rest > 0 ? "Next after rest" : "Ready"}</span>
+        </div>
+
         <div className="set-tabs" aria-label="Working sets">
           {exercise.sets.map((workingSet, index) => (
             <button
               key={index}
               className={`${index === setIndex ? "active" : ""} ${workingSet.completedAt ? "done" : ""}`}
-              onClick={() => setSetIndex(index)}
+              onClick={() => selectSet(index)}
+              aria-label={`Set ${index + 1}${workingSet.completedAt ? " complete" : ""}`}
             >
               {index + 1}
             </button>
@@ -172,12 +205,25 @@ export default function ActiveWorkout({ workoutDay, workoutSessions, onComplete,
           </div>
         </section>
 
-        <button className="btn primary complete-set" disabled={Boolean(set.completedAt)} onClick={completeSet}>
-          {set.completedAt ? "Set Complete" : "Complete Set"}
+        <button className="btn primary complete-set" disabled={Boolean(set.completedAt) || rest > 0} onClick={completeSet}>
+          {set.completedAt ? "Set Complete" : rest > 0 ? `${nextLabel} after rest` : "Complete Set"}
         </button>
 
         {allComplete && (
           <button className="btn finish-workout" onClick={finishWorkout}>Finish Workout</button>
+        )}
+
+        {!confirmDiscard ? (
+          <button className="btn ghost discard-workout" onClick={() => setConfirmDiscard(true)}>Discard Workout</button>
+        ) : (
+          <section className="discard-confirm" role="alert">
+            <strong>Discard this workout and start over?</strong>
+            <p>Your completed sets in this draft will be removed.</p>
+            <div>
+              <button className="btn small secondary" onClick={() => setConfirmDiscard(false)}>Keep Workout</button>
+              <button className="btn small danger-button" onClick={onDiscard}>Discard and Start Over</button>
+            </div>
+          </section>
         )}
       </main>
     </div>

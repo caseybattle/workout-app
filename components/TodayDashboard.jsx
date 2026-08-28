@@ -4,8 +4,11 @@ import { nextWorkoutDay, sessionsForExercise } from "@/lib/program";
 import { recommendProgression } from "@/lib/training";
 import { rollingWeights, targetKcal, totalsFor } from "@/lib/nutrition";
 
-export default function TodayDashboard({ state, entries, onStartWorkout, onAddFood, onOpenProgress }) {
-  const workout = nextWorkoutDay(state.program, state.workoutSessions);
+export default function TodayDashboard({ state, entries, onStartWorkout, onResumeWorkout, onAddFood, onOpenProgress }) {
+  const activeWorkoutDay = state.activeWorkout
+    ? state.program.workoutDays.find((workoutDay) => workoutDay.id === state.activeWorkout.workoutDayId)
+    : null;
+  const workout = activeWorkoutDay || nextWorkoutDay(state.program, state.workoutSessions);
   const totals = totalsFor(entries);
   const target = targetKcal(state.profile);
   const remaining = Math.round(target - totals.kcal);
@@ -29,11 +32,11 @@ export default function TodayDashboard({ state, entries, onStartWorkout, onAddFo
             <h2>{workout?.name || "Recovery day"}</h2>
             <p>{workout ? `${workout.exercises.length} exercises · follow your next targets` : "No workout is scheduled."}</p>
           </div>
-          {workout && <span className="status-pill">Ready</span>}
+          {workout && <span className="status-pill">{state.activeWorkout ? "In progress" : "Ready"}</span>}
         </div>
         {workout && (
-          <button className="btn primary hero-action" onClick={() => onStartWorkout(workout)}>
-            Start Workout
+          <button className="btn primary hero-action" onClick={() => state.activeWorkout ? onResumeWorkout() : onStartWorkout(workout)}>
+            {state.activeWorkout ? "Resume Workout" : "Start Workout"}
           </button>
         )}
       </section>

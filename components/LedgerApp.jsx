@@ -5,6 +5,7 @@ import { signOut } from "next-auth/react";
 import { loadLocal, saveLocal, fetchRemoteState, pushRemoteState, resolveConflict, stamp } from "@/lib/client";
 import { today } from "@/lib/nutrition";
 import { normalizeTrainingState } from "@/lib/program";
+import { createActiveWorkoutState } from "@/lib/training";
 import Onboarding from "./Onboarding";
 import AddSheet from "./AddSheet";
 import AppNav from "./AppNav";
@@ -30,7 +31,6 @@ export default function LedgerApp({ user }) {
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState("today");
   const [adding, setAdding] = useState(false);
-  const [activeWorkoutDay, setActiveWorkoutDay] = useState(null);
   const [saveNote, setSaveNote] = useState("");
 
   useEffect(() => {
@@ -98,20 +98,52 @@ export default function LedgerApp({ user }) {
     persist({ ...state, profile });
   }
 
-  function completeWorkout(session) {
-    persist({ ...state, workoutSessions: [...state.workoutSessions, session] });
-    setActiveWorkoutDay(null);
+  function startWorkout(workoutDay) {
+    persist({
+      ...state,
+      activeWorkout: createActiveWorkoutState(workoutDay, state.workoutSessions, new Date().toISOString()),
+    });
+  }
+
+  function updateActiveWorkout(activeWorkout) {
+    persist({ ...state, activeWorkout });
+  }
+
+  function saveAndExitWorkout(activeWorkout) {
+    persist({ ...state, activeWorkout: { ...activeWorkout, isOpen: false } });
     setTab("today");
   }
 
-  if (activeWorkoutDay) {
+  function resumeWorkout() {
+    if (!state.activeWorkout) return;
+    persist({ ...state, activeWorkout: { ...state.activeWorkout, isOpen: true } });
+  }
+
+  function discardWorkout() {
+    persist({ ...state, activeWorkout: null });
+    setTab("today");
+  }
+
+  function completeWorkout(session) {
+    persist({ ...state, activeWorkout: null, workoutSessions: [...state.workoutSessions, session] });
+    setTab("today");
+  }
+
+  const activeWorkoutDay = state.activeWorkout
+    ? state.program.workoutDays.find((workoutDay) => workoutDay.id === state.activeWorkout.workoutDayId)
+    : null;
+
+  if (state.activeWorkout?.isOpen && activeWorkoutDay) {
     return (
       <ActiveWorkout
-        key={activeWorkoutDay.id}
+        key={state.activeWorkout.draft.id}
         workoutDay={activeWorkoutDay}
         workoutSessions={state.workoutSessions}
+        initialWorkout={state.activeWorkout}
+        onUpdate={updateActiveWorkout}
         onComplete={completeWorkout}
-        onCancel={() => setActiveWorkoutDay(null)}
+        onSaveAndExit={saveAndExitWorkout}
+        onDiscard={discardWorkout}
       />
     );
   }
@@ -139,12 +171,13 @@ export default function LedgerApp({ user }) {
           <TodayDashboard
             state={state}
             entries={todayEntries}
-            onStartWorkout={setActiveWorkoutDay}
+            onStartWorkout={startWorkout}
+            onResumeWorkout={resumeWorkout}
             onAddFood={() => setAdding(true)}
             onOpenProgress={() => setTab("progress")}
           />
         )}
-        {tab === "train" && <Train state={state} onStartWorkout={setActiveWorkoutDay} />}
+        {tab === "train" && <Train state={state} onStartWorkout={startWorkout} onResumeWorkout={resumeWorkout} />}
         {tab === "food" && <Food profile={state.profile} entries={todayEntries} onAdd={() => setAdding(true)} onRemove={removeEntry} />}
         {tab === "progress" && <Progress state={state} onLogWeight={addWeight} onUpdateProfile={updateProfile} />}
         {tab === "coach" && <Coach state={state} />}

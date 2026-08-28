@@ -1,76 +1,77 @@
 {
-  "outcome": "The existing Vercel production workout app supports reliable Google sign-in, authenticated state storage, and a verified OpenAI-backed request without Auth.js configuration errors.",
+  "outcome": "Every primary workflow in the production workout app executes from the visible UI, including a workout that can advance through rest, resume, and finish without trapping the user.",
   "non_goals": [
-    "Redesigning the workout app UI",
-    "Changing the Google account allowlist",
-    "Migrating the Neon database or altering stored user data beyond a no-op verification"
+    "Redesigning the visual system",
+    "Changing authentication or environment credentials",
+    "Keeping synthetic QA food, workout, or body-weight records"
   ],
   "constraints": [
-    "Preserve all secrets outside source control and command output",
-    "Make the smallest complete auth repair",
-    "Use the existing Vercel project and production alias",
-    "Stop after three failed fix hypotheses or if a required credential is unavailable"
+    "Preserve user-created data and remove all temporary QA records",
+    "Use test-first fixes for every reproduced defect",
+    "Keep fixes focused and compatible with the existing Vercel project",
+    "Stop after three failed hypotheses for one defect and report the architectural blocker"
   ],
   "success_checks": [
     {
-      "id": "check-unit",
+      "id": "check-tests",
       "type": "command",
-      "command_or_condition": "npm test",
+      "command_or_condition": "npm test && npm run test:auth && npm run build",
       "required": true
     },
     {
-      "id": "check-auth-regression",
-      "type": "command",
-      "command_or_condition": "npm run test:auth",
-      "required": true
-    },
-    {
-      "id": "check-build",
-      "type": "command",
-      "command_or_condition": "npm run build",
-      "required": true
-    },
-    {
-      "id": "check-production-login",
+      "id": "check-navigation",
       "type": "condition",
-      "command_or_condition": "A fresh in-app-browser Google sign-in returns to the production alias with an authenticated session and no Auth.js runtime error.",
+      "command_or_condition": "Today, Train, Food, Progress, and Coach pages all open from production navigation without a console or runtime failure.",
       "required": true
     },
     {
-      "id": "check-production-storage",
+      "id": "check-workout-lifecycle",
       "type": "condition",
-      "command_or_condition": "The authenticated production /api/state endpoint returns a successful JSON response backed by Neon.",
+      "command_or_condition": "A production workout can start, record a set, show and control rest, advance to the next actionable set, resume after navigation or reload, and finish or cancel with an explicit visible control.",
       "required": true
     },
     {
-      "id": "check-production-ai",
+      "id": "check-food",
       "type": "condition",
-      "command_or_condition": "One bounded authenticated production /api/ai estimate request returns model output without exposing the API key.",
+      "command_or_condition": "Food search, AI estimate, and manual entry controls execute; a temporary record can be created and removed without changing existing user records.",
       "required": true
     },
     {
-      "id": "check-production-logs",
+      "id": "check-progress",
       "type": "condition",
-      "command_or_condition": "Vercel reports the deployment READY and no new auth, storage, or AI runtime error clusters after verification.",
+      "command_or_condition": "Progress renders and its temporary body-weight entry workflow validates, saves, and cleans up safely if deletion is supported.",
+      "required": true
+    },
+    {
+      "id": "check-coach",
+      "type": "condition",
+      "command_or_condition": "Coach accepts one bounded test prompt and renders a successful response.",
+      "required": true
+    },
+    {
+      "id": "check-production",
+      "type": "condition",
+      "command_or_condition": "The GitHub main deployment is READY and verified production requests have no failed runtime status codes.",
       "required": true
     }
   ],
   "stop_conditions": [
     "All required success checks have fresh evidence",
-    "The same blocking credential or platform condition prevents progress three times",
-    "Three distinct repair hypotheses fail and the authentication architecture requires user review"
+    "A user-only credential or platform action blocks the same check three times",
+    "Three repair hypotheses fail for one defect"
   ],
   "required_evidence": [
-    "Fresh unit, auth regression, and production build output",
-    "Vercel deployment ID and READY state",
-    "In-app-browser authenticated session, state API, and AI API observations",
-    "Post-verification Vercel runtime error report"
+    "Failing and passing regression test output for each repaired defect",
+    "Fresh full test and production build output",
+    "In-app browser observations for every primary page and workout lifecycle state",
+    "Final Vercel deployment and runtime-log evidence",
+    "Clean Git worktree and remote main commit"
   ],
   "approval_boundaries": [
-    "Do not reveal or commit credentials",
-    "Do not change Google Cloud OAuth credentials or authorized redirect URIs without a required user-only confirmation",
-    "Do not delete or overwrite existing workout data",
-    "Deploy only to the existing workout-app Vercel project"
+    "Do not expose or modify secrets",
+    "Do not delete user-created records",
+    "Create only clearly temporary QA records and remove them when the UI supports removal",
+    "Deploy only to the existing workout-app production project"
   ],
   "expires_at": null
 }
